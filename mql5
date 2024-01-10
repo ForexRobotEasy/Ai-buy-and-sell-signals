@@ -1,0 +1,87 @@
+
+// Program: Ai buy and sell signals
+// Developer's site: forexroboteasy.com
+// Developer: Forex Robot Easy Team
+
+#property copyright 'forexroboteasy.com'
+#property link 'forexroboteasy.com'
+
+#include <Trade\Trade.mqh>
+#include <Indicators\AverageTrueRange.mqh>
+
+// Define constants for the time frame and ATR period
+const ENUM_TIMEFRAMES TIME_FRAME = PERIOD_M5;
+const int ATR_PERIOD = 14;
+
+// Define variables for the ATR indicator and trade operations
+CIndicators indicators;
+CAverageTrueRange atr;
+CTrade trade;
+
+// Define variables for buy and sell signals
+bool buySignal = false;
+bool sellSignal = false;
+
+// Initialize the Expert Advisor
+int OnInit()
+{
+   // Set the ATR indicator parameters
+   atr.Create(_Symbol, TIME_FRAME, ATR_PERIOD);
+
+   // Enable notifications for buy and sell signals
+   trade.Notifications(true);
+
+   return(INIT_SUCCEEDED);
+}
+
+// Generate buy and sell signals based on the modified ATR algorithm
+void GenerateSignals()
+{
+   // Calculate the ATR value
+   double atrValue = atr.Series()[0];
+
+   // Determine if the current price is above the ATR value
+   if (Close[0] > atrValue)
+   {
+      buySignal = true;
+      sellSignal = false;
+   }
+   // Determine if the current price is below the ATR value
+   else if (Close[0] < atrValue)
+   {
+      buySignal = false;
+      sellSignal = true;
+   }
+   // No signal if the current price is equal to the ATR value
+   else
+   {
+      buySignal = false;
+      sellSignal = false;
+   }
+}
+
+// Execute trade operations based on the buy and sell signals
+void ExecuteTrades()
+{
+   // Check if a buy signal is generated
+   if (buySignal)
+   {
+      trade.Buy(0.1); // Place a buy trade with 0.1 lot size
+   }
+
+   // Check if a sell signal is generated
+   if (sellSignal)
+   {
+      trade.Sell(0.1); // Place a sell trade with 0.1 lot size
+   }
+}
+
+// Check for buy and sell signals and execute trades
+void OnTick()
+{
+   // Generate buy and sell signals
+   GenerateSignals();
+
+   // Execute trades based on the signals
+   ExecuteTrades();
+}
